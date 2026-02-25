@@ -27,6 +27,10 @@ final class CalculatorTests: XCTestCase {
         }
     }
 
+    func testPercentage() {
+        XCTAssertEqual(calculator.percentage(200.0, 12.5), 25.0, accuracy: 0.001)
+    }
+
     func testVersion() {
         XCTAssertFalse(calculator.version().isEmpty)
     }

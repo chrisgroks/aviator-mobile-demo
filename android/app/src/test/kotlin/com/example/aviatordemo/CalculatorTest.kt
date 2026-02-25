@@ -36,6 +36,11 @@ class CalculatorTest {
     }
 
     @Test
+    fun `percentage calculates correctly`() {
+        assertEquals(25.0, calculator.percentage(200.0, 12.5), 0.001)
+    }
+
+    @Test
     fun `version returns non-empty string`() {
         assert(calculator.version().isNotEmpty())
     }

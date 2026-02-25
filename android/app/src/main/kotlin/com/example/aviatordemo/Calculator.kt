@@ -13,5 +13,7 @@ class Calculator {
         return a / b
     }
 
+    fun percentage(value: Double, percent: Double): Double = value * percent / 100.0
+
     fun version(): String = "1.0.0"
 }
