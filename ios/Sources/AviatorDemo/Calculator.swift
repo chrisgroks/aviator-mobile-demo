@@ -2,23 +2,27 @@ public struct Calculator {
 
     public init() {}
 
-    public func add(_ a: Double, _ b: Double) -> Double {
-        a + b
+    public func add(_ lhs: Double, _ rhs: Double) -> Double {
+        lhs + rhs
     }
 
-    public func subtract(_ a: Double, _ b: Double) -> Double {
-        a - b
+    public func subtract(_ lhs: Double, _ rhs: Double) -> Double {
+        lhs - rhs
     }
 
-    public func multiply(_ a: Double, _ b: Double) -> Double {
-        a * b
+    public func multiply(_ lhs: Double, _ rhs: Double) -> Double {
+        lhs * rhs
     }
 
-    public func divide(_ a: Double, _ b: Double) throws -> Double {
-        guard b != 0 else {
+    public func divide(_ lhs: Double, _ rhs: Double) throws -> Double {
+        guard rhs != 0 else {
             throw CalculatorError.divisionByZero
         }
-        return a / b
+        return lhs / rhs
+    }
+
+    public func percentage(_ value: Double, _ percent: Double) -> Double {
+        value * percent / 100.0
     }
 
     public func version() -> String {
