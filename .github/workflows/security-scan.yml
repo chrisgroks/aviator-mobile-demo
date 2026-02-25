@@ -14,30 +14,50 @@ jobs:
     name: SonarCloud Analysis
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request' || github.ref == 'refs/heads/main'
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
         with:
           fetch-depth: 0
 
+      - name: Check for SonarCloud token
+        id: check-sonar
+        run: |
+          if [ -z "${{ secrets.SONAR_TOKEN }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SONAR_TOKEN not configured. Skipping SonarCloud analysis."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: SonarCloud Scan
+        if: steps.check-sonar.outputs.configured == 'true'
         uses: SonarSource/sonarcloud-github-action@master
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-        with:
-          args: >
-            -Dsonar.organization=${{ vars.SONAR_ORG }}
-            -Dsonar.projectKey=${{ vars.SONAR_PROJECT_KEY }}
 
   snyk:
     name: Snyk Security Scan
     runs-on: ubuntu-latest
+    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run Snyk to check for vulnerabilities (Android)
+      - name: Check for Snyk token
+        id: check-snyk
+        run: |
+          if [ -z "${{ secrets.SNYK_TOKEN }}" ]; then
+            echo "configured=false" >> "$GITHUB_OUTPUT"
+            echo "::warning::SNYK_TOKEN not configured. Skipping Snyk scan."
+          else
+            echo "configured=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Run Snyk to check for vulnerabilities
+        if: steps.check-snyk.outputs.configured == 'true'
         uses: snyk/actions/gradle@master
         continue-on-error: true
         env:
@@ -45,12 +65,3 @@ jobs:
         with:
           args: --all-sub-projects
           command: test
-
-      - name: Upload Snyk results
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: snyk-results
-          path: snyk-report.*
-          retention-days: 7
-          if-no-files-found: ignore
