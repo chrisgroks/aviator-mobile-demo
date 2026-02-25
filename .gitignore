@@ -1,0 +1,24 @@
+# Android
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+
+# iOS
+ios/.build/
+ios/.swiftpm/
+*.xcuserdata
+*.ipa
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.DS_Store
+
+# Secrets
+.env
+*.keystore
+*.jks

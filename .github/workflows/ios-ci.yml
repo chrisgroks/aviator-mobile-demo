@@ -1,0 +1,49 @@
+name: iOS CI
+
+on:
+  pull_request:
+    paths:
+      - "ios/**"
+      - ".github/workflows/ios-ci.yml"
+
+concurrency:
+  group: ios-ci-${{ github.head_ref || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    name: Build and Test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ios
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Swift
+        uses: swift-actions/setup-swift@v2
+        with:
+          swift-version: "5.9"
+
+      - name: Build
+        run: swift build -v
+
+      - name: Run Tests
+        run: swift test -v
+
+  simulated-build:
+    name: Simulated Build
+    runs-on: ubuntu-latest
+    needs: build-and-test
+
+    steps:
+      - name: Simulate IPA build
+        run: |
+          echo "========================================="
+          echo "  SIMULATED: Building AviatorDemo.ipa"
+          echo "  Commit: ${{ github.sha }}"
+          echo "  Branch: ${{ github.head_ref }}"
+          echo "========================================="
+          echo "Build artifact: AviatorDemo.ipa (simulated)"
+          echo "Build completed at $(date -u)"

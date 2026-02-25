@@ -1,0 +1,90 @@
+name: "Aviator: Build"
+
+on:
+  workflow_dispatch:
+    inputs:
+      aviator_release_cut_id:
+        description: "Aviator release cut database ID"
+        required: false
+        type: string
+      aviator_release_cut_commit_hash:
+        description: "Commit SHA, branch name, or tag to build"
+        required: false
+        type: string
+      aviator_release_candidate_version:
+        description: "Version name for this release"
+        required: true
+        type: string
+
+jobs:
+  sync-with-aviator:
+    name: Sync Workflow with Aviator
+    runs-on: ubuntu-latest
+    steps:
+      - name: Sync run ID with Aviator
+        if: ${{ inputs.aviator_release_cut_id != '' }}
+        run: |
+          curl -s -X POST \
+            "https://api.aviator.co/api/v1/sync-build-github-action" \
+            -H "Authorization: Bearer ${{ secrets.AVIATOR_API_TOKEN }}" \
+            -H "Content-Type: application/json" \
+            -d '{
+              "workflow_run_id": ${{ github.run_id }},
+              "release_cut_id": ${{ inputs.aviator_release_cut_id }}
+            }'
+
+  build-android:
+    name: Build Android
+    runs-on: ubuntu-latest
+    needs: sync-with-aviator
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{ inputs.aviator_release_cut_commit_hash }}"
+
+      - name: Simulate Android build
+        run: |
+          echo "========================================="
+          echo "  Building Android APK"
+          echo "  Version: ${{ inputs.aviator_release_candidate_version }}"
+          echo "  Commit:  ${{ inputs.aviator_release_cut_commit_hash }}"
+          echo "========================================="
+          mkdir -p build-output
+          echo "app-release-${{ inputs.aviator_release_candidate_version }}.apk" > build-output/android-manifest.txt
+          echo "Android build completed at $(date -u)"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "android-${{ inputs.aviator_release_candidate_version }}"
+          path: build-output/
+          retention-days: 30
+
+  build-ios:
+    name: Build iOS
+    runs-on: ubuntu-latest
+    needs: sync-with-aviator
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{ inputs.aviator_release_cut_commit_hash }}"
+
+      - name: Simulate iOS build
+        run: |
+          echo "========================================="
+          echo "  Building iOS IPA"
+          echo "  Version: ${{ inputs.aviator_release_candidate_version }}"
+          echo "  Commit:  ${{ inputs.aviator_release_cut_commit_hash }}"
+          echo "========================================="
+          mkdir -p build-output
+          echo "AviatorDemo-${{ inputs.aviator_release_candidate_version }}.ipa" > build-output/ios-manifest.txt
+          echo "iOS build completed at $(date -u)"
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: "ios-${{ inputs.aviator_release_candidate_version }}"
+          path: build-output/
+          retention-days: 30

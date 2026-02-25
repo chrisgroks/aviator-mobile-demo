@@ -1,0 +1,57 @@
+name: "Aviator: Deploy"
+
+on:
+  workflow_dispatch:
+    inputs:
+      aviator_deployment_id:
+        description: "Aviator deployment database ID"
+        required: false
+        type: string
+      aviator_release_cut_commit_hash:
+        description: "Commit SHA, branch name, or tag to deploy"
+        required: false
+        type: string
+      aviator_release_candidate_version:
+        description: "Version to deploy"
+        required: true
+        type: string
+      environment:
+        description: "Target environment"
+        required: false
+        type: string
+        default: "staging"
+
+jobs:
+  deploy:
+    name: Deploy to ${{ inputs.environment }}
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: "${{ inputs.aviator_release_cut_commit_hash }}"
+
+      - name: Simulate deployment
+        run: |
+          echo "========================================="
+          echo "  Deploying to: ${{ inputs.environment }}"
+          echo "  Version:      ${{ inputs.aviator_release_candidate_version }}"
+          echo "  Commit:       ${{ inputs.aviator_release_cut_commit_hash }}"
+          echo "  Deploy ID:    ${{ inputs.aviator_deployment_id }}"
+          echo "========================================="
+          echo ""
+          echo "Step 1/4: Downloading build artifacts..."
+          sleep 2
+          echo "Step 2/4: Running pre-deploy health check..."
+          sleep 2
+          echo "Step 3/4: Deploying to ${{ inputs.environment }}..."
+          sleep 2
+          echo "Step 4/4: Running post-deploy smoke test..."
+          sleep 2
+          echo ""
+          echo "Deployment completed successfully at $(date -u)"
+
+      - name: Notify Aviator of deployment status
+        if: ${{ inputs.aviator_deployment_id != '' }}
+        run: |
+          echo "Notifying Aviator that deployment ${{ inputs.aviator_deployment_id }} succeeded"
