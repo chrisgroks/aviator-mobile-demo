@@ -25,10 +25,6 @@ public struct Calculator {
         value * percent / 100.0
     }
 
-    public func percentage(_ value: Double, _ percent: Double) -> Double {
-        value * percent / 100.0
-    }
-
     public func version() -> String {
         "1.0.0"
     }
