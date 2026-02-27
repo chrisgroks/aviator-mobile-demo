@@ -57,11 +57,44 @@ jobs:
           fi
 
       - name: Run Snyk to check for vulnerabilities
+        id: snyk-scan
         if: steps.check-snyk.outputs.configured == 'true'
         uses: snyk/actions/gradle@master
         continue-on-error: true
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --all-sub-projects
+          args: --all-sub-projects --json-file-output=snyk-results.json
           command: test
+
+      - name: Notify Cursor automation on vulnerability found
+        if: steps.snyk-scan.outcome == 'failure' && secrets.CURSOR_SECURITY_WEBHOOK_URL != ''
+        run: |
+          BRANCH="${{ github.head_ref || github.ref_name }}"
+          PR_NUMBER="${{ github.event.pull_request.number }}"
+          REPO="${{ github.repository }}"
+
+          SNYK_OUTPUT=""
+          if [ -f snyk-results.json ]; then
+            SNYK_OUTPUT=$(cat snyk-results.json | head -c 50000)
+          fi
+
+          curl -s -X POST "${{ secrets.CURSOR_SECURITY_WEBHOOK_URL }}" \
+            -H "Content-Type: application/json" \
+            -d "$(jq -n \
+              --arg context "Snyk found vulnerabilities in $REPO on branch $BRANCH (PR #$PR_NUMBER)" \
+              --arg branch "$BRANCH" \
+              --arg pr "$PR_NUMBER" \
+              --arg repo "$REPO" \
+              --argjson snyk_results "$(cat snyk-results.json 2>/dev/null || echo '{}')" \
+              '{
+                context: $context,
+                webhookPayload: {
+                  scanner: "snyk",
+                  repository: $repo,
+                  branch: $branch,
+                  pr_number: $pr,
+                  results: $snyk_results
+                }
+              }'
+            )"

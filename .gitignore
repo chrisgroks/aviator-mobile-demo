@@ -22,3 +22,7 @@ ios/.swiftpm/
 .env
 *.keystore
 *.jks
+
+# etc
+.cursor/
+
