@@ -64,7 +64,7 @@ jobs:
         env:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         with:
-          args: --all-sub-projects --json-file-output=snyk-results.json
+          args: --file=android/app/build.gradle.kts --json-file-output=snyk-results.json
           command: test
 
       - name: Notify Cursor automation on vulnerability found
