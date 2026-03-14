@@ -33,4 +33,6 @@ android {
 
 dependencies {
     testImplementation("junit:junit:4.13.2")
+    implementation("com.squareup.okhttp3:okhttp:3.12.0")
+    implementation("com.google.code.gson:gson:2.8.5")
 }
